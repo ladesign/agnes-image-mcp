@@ -1,0 +1,22 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+    "mcp": {
+      "agnes-image": {
+        "type": "local",
+        "command": [
+          "node",
+          "./mcp/agnes-image-mcp/src/server.mjs"
+        ],
+        "cwd": ".",
+        "environment": {
+          "AGNES_API_KEY": "{env:AGNES_API_KEY}",
+          "AGNES_BASE_URL": "https://apihub.agnes-ai.com",
+          "AGNES_VISION_MODEL": "agnes-2.5-flash",
+          "AGNES_VISION_FALLBACK_MODEL": "agnes-2.0-flash",
+          "AGNES_IMAGE_MODEL": "agnes-image-2.5-flash",
+          "AGNES_IMAGE_FALLBACK_MODEL": "agnes-image-2.1-flash"
+        },
+        "timeout": 120000
+      }
+  }
+}

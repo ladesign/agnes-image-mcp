@@ -1,0 +1,10 @@
+{
+  "name": "agnes-image-mcp",
+  "version": "2.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Agnes Vision + Image MCP for ecommerce-image-workflow",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.18.2"
+  }
+}
