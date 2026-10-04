@@ -93,7 +93,7 @@ Because MCP has:
 and the MCP command is launched from the OpenCode project context, treat:
 
 ```text
-./reference/補光設備操作畫面.png
+./reference/dashboard.jpg
 ```
 
 as expected to resolve from the project root.
@@ -103,7 +103,7 @@ Do not make relative-path failure the primary hypothesis.
 If needed, compare with the absolute path:
 
 ```text
-D:\project_ILS\SGMS\reference\補光設備操作畫面.png
+D:\agnes-image-mcp-main\reference\dashboard.jpg
 ```
 
 Only classify `PATH_RESOLUTION` when evidence supports it.
@@ -143,7 +143,7 @@ Use:
 ```text
 請使用 agnes-image MCP 的 agnes-image_analyze_image。
 分析：
-D:\project_ILS\SGMS\reference\補光設備操作畫面.png
+D:\agnes-image-mcp-main\reference\dashboard.jpg
 
 Prompt：
 簡述此畫面的主要 UI 元件與佈局。

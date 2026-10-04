@@ -1,7 +1,10 @@
 # agnes-image-mcp
 
-> 讓沒有 Vision 能力的 AI Agent 也能「看懂UI設計圖片」並實現編碼的 MCP Server。
-> 讓沒有 Vision 能力的 AI Agent（例如純文字模型）也能「看懂商品圖片」並產出電商圖片的 MCP Server。
+使用 `Agnes AI` 為終端機 AI Agent 的非視覺編碼模型提供 Vision 能力，使其能夠通過將它們連結到到具有視覺功能的模型來查看圖像。
+
+當用戶將圖像附加到純文本模型時，opencode 會拒絕該圖像，並返回 " this model does not support image input "。 此 `agnes-image-mcp` 註冊了一個 " vision " 工具，該工具會處理圖像並將其發送到視覺模型，從而返回一個詳細的文本描述，供主要的模型進行推理。
+
+> 讓沒有 Vision 能力的 AI Agent 也能「看懂UI設計圖片」並實現編碼，讓沒有 Vision 能力的 AI Agent（例如純文字模型）也能「看懂商品圖片」並產出電商圖片的 MCP Server。
 
 `agnes-image-mcp` 是一個以 [Model Context Protocol (MCP)](https://modelcontextprotocol.io) 標準實作的 **stdio 本機 MCP Server**，將 [Agnes AI](https://app.agnes-ai.com/) 的 **Vision（圖片理解）** 與 **Image（圖片生成／編輯）** 兩組模型封裝成 5 個工具，讓 OpenCode 等 Agent 在**不具備原生視覺能力**的情況下，也能完成「看懂商品照 → 規劃版面 → 人工確認 → 生成電商圖」的完整流程。
 
@@ -14,13 +17,15 @@
 
 ## 為什麼需要這個 MCP
 
-許多終端機 AI Agent 使用的模型是**純文字模型**，無法直接讀取圖片。傳統做法要嘛換成有視覺的模型、要嘛手動把圖片內容抄給 Agent。
+有些免費終端機 AI Agent 提供的模型是**純文字模型**，無法直接讀取圖片。傳統做法要嘛換成有視覺的模型、要嘛手動把圖片內容抄給 Agent。
 
 本專案的解法是：**把「看圖」這件事交給 Agnes Vision，並以標準 MCP Tool 的形式回傳結構化 Markdown**。Agent（不論本身有無視覺能力）都能：
 
 1. 用 `agnes-image_analyze_image` 取得圖片的視覺分析 Markdown。
 2. 依據分析結果撰寫生圖計畫（image plan）。
 3. 在**人工確認**後，用 `agnes-image_generate_image` / `_edit_image` / `_compose_images` 產出圖檔。
+
+重點是可使用 Agnes 官方提供的**免費 API**來完成所有工作。
 
 ---
 
@@ -75,9 +80,9 @@ MCP Server 註冊名稱為 **`agnes-image-mcp`**（在 `server.mjs` 中宣告）
 
 ## 環境需求
 
-- **Node.js 18 以上**（需原生支援 `fetch` 與 `AbortController`；本專案以 Node 24 驗證）
+- **Node.js 18 以上**（需原生支援 `fetch` 與 `AbortController`）
 - **npm**
-- **Agnes AI API Key** —— 至 [platform.agnes-ai.com/settings/apiKeys](https://platform.agnes-ai.com/settings/apiKeys) 申請（Agnes 官方標示提供 **Free API**，免費 API 與付費 Token Plan 分開計算）
+- **Agnes AI API Key** —— **可以用免費 API 完成所有工作**
 - 一個 **OpenCode 專案目錄**（或其他支援 MCP 的 AI Agent 客戶端）
 
 ---
@@ -127,6 +132,11 @@ setx AGNES_IMAGE_FALLBACK_MODEL "agnes-image-2.1-flash"
 ```
 
 > `setx` 僅影響**新啟動**的程序，設定後務必重新開啟終端機或 VS Code。
+
+確認 API Key 已寫入系統環境變數：
+```text
+echo %AGNES_API_KEY%
+```
 
 ### Step 4 — 設定 OpenCode
 
@@ -506,8 +516,11 @@ Model: agnes-2.5-flash
 | MCP 官方網站 | https://modelcontextprotocol.io |
 | OpenCode 設定 Schema | https://opencode.ai/config.json |
 
+- Agnes AI 服務之使用條款與計費請以其官方網站公告為準。
+- Agnes AI 官方標示提供 **Free API**，免費 API 與付費 Token Plan 分開計算。
+
 ---
 
 ## License
 
-本專案僅供內部與學習用途。Agnes AI 服務之使用條款與計費請以其官方網站公告為準。
+MIT。

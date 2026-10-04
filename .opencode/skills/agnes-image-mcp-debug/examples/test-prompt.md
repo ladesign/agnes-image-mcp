@@ -1,7 +1,7 @@
 使用 agnes-image-mcp-debug Skill。
 
 請診斷：
-D:\project_ILS\SGMS\reference\補光設備操作畫面.png
+D:\agnes-image-mcp-main\reference\dashboard.jpg
 
 使用：
 - agnes-image MCP

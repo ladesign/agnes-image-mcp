@@ -54,7 +54,7 @@ MCP `cwd` 是 `.`，`./reference/...` 預期應由專案根目錄解析。
 
 目標 Vision 模型：agnes-2.5-flash
 Fallback：agnes-2.0-flash
-圖片：<你的專案>\reference\dashboard.png
+圖片：D:\agnes-image-mcp-main\reference\dashboard.jpg
 
 不要使用其他模型比較。
 重點確認 agnes-image_analyze_image 的 Tool Call
