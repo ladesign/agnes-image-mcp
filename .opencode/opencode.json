@@ -14,9 +14,11 @@
           "AGNES_VISION_MODEL": "agnes-2.5-flash",
           "AGNES_VISION_FALLBACK_MODEL": "agnes-2.0-flash",
           "AGNES_IMAGE_MODEL": "agnes-image-2.5-flash",
-          "AGNES_IMAGE_FALLBACK_MODEL": "agnes-image-2.1-flash"
+          "AGNES_IMAGE_FALLBACK_MODEL": "agnes-image-2.1-flash",
+          "AGNES_VISION_TIMEOUT_MS": "180000",
+          "AGNES_IMAGE_TIMEOUT_MS": "300000"
         },
-        "timeout": 120000
+        "timeout": 620000
       }
   }
 }

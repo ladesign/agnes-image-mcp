@@ -23,7 +23,9 @@ Expected `.opencode/opencode.json` configuration:
 - cwd: `.`
 - `AGNES_VISION_MODEL`: `agnes-2.5-flash`
 - `AGNES_VISION_FALLBACK_MODEL`: `agnes-2.0-flash`
-- MCP timeout: `120000` ms
+- `AGNES_VISION_TIMEOUT_MS`: `180000`
+- `AGNES_IMAGE_TIMEOUT_MS`: `300000`
+- MCP timeout: `620000` ms
 
 Do not confuse these Vision models with the separate image-generation models:
 
@@ -60,15 +62,23 @@ If no Tool Result is visible, do not classify the problem as model post-processi
 
 ### P1 — Timeout
 
-The configured MCP timeout is 120000 ms.
+The configured MCP timeout is 620000 ms.
+
+The MCP `timeout` is a single server-wide ceiling, not a per-tool value, so it must exceed the theoretical worst case of the slowest tool path: Image fallback = `AGNES_IMAGE_TIMEOUT_MS` + `AGNES_IMAGE_TIMEOUT_MS` = 300000 + 300000 = 600000 ms. Vision fallback worst case is 180000 + 180000 = 360000 ms.
+
+The API-level timeouts (`AGNES_VISION_TIMEOUT_MS` 180000 ms, `AGNES_IMAGE_TIMEOUT_MS` 300000 ms) always fire before the MCP ceiling, so a large MCP timeout does not make hangs worse in practice. This ordering matters:
+
+- With this ordering the API layer aborts first and the server returns a real `isError` Tool Result, so a hung call is visible as an error rather than a missing Tool Result.
+- If the MCP timeout is ever set below an API timeout (for example back to 120000 ms vs Vision 180000 ms), the MCP layer expires first and produces exactly the `Tool Call → no Tool Result` symptom. Treat that specific mismatch as the primary hypothesis for that symptom.
 
 Record whether the call:
 
 - returns before timeout,
-- hangs until approximately 120 seconds,
+- hangs until approximately 620 seconds (MCP ceiling, i.e. no `isError` was produced at all),
+- hangs until approximately 180 seconds (Vision API abort) then returns an `isError` Tool Result,
 - fails earlier with an error.
 
-If it reaches the timeout boundary without a Tool Result, classify as `TIMEOUT` unless stronger evidence identifies the underlying cause.
+If it reaches the MCP timeout boundary without a Tool Result, classify as `TIMEOUT` unless stronger evidence identifies the underlying cause.
 
 ### P2 — Agnes Vision model
 
@@ -100,10 +110,10 @@ as expected to resolve from the project root.
 
 Do not make relative-path failure the primary hypothesis.
 
-If needed, compare with the absolute path:
+If needed, compare with the absolute path resolved from the actual project root, for example:
 
 ```text
-D:\agnes-image-mcp-main\reference\dashboard.jpg
+D:\project_GitHub\mcp\agnes-image-mcp-main\reference\dashboard.jpg
 ```
 
 Only classify `PATH_RESOLUTION` when evidence supports it.
@@ -143,7 +153,7 @@ Use:
 ```text
 請使用 agnes-image MCP 的 agnes-image_analyze_image。
 分析：
-D:\agnes-image-mcp-main\reference\dashboard.jpg
+./reference/dashboard.jpg
 
 Prompt：
 簡述此畫面的主要 UI 元件與佈局。

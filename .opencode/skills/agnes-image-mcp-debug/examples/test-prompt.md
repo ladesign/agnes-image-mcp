@@ -1,7 +1,7 @@
 使用 agnes-image-mcp-debug Skill。
 
 請診斷：
-D:\agnes-image-mcp-main\reference\dashboard.jpg
+./reference/dashboard.jpg
 
 使用：
 - agnes-image MCP
@@ -17,7 +17,7 @@ D:\agnes-image-mcp-main\reference\dashboard.jpg
 3. 是否使用 agnes-2.5-flash
 4. 是否 fallback 到 2.0
 5. Tool Result 是否真的回到 OpenCode
-6. 是否發生 120 秒 timeout
+6. 是否發生 620 秒 MCP timeout 或 180 秒 Vision API timeout
 7. 是否有 serialization / propagation 問題
 
 最後輸出完整 Debug Report。

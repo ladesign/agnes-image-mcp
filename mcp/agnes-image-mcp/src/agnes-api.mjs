@@ -8,6 +8,8 @@ const VISION_MODEL = process.env.AGNES_VISION_MODEL || 'agnes-2.5-flash';
 const IMAGE_MODEL = process.env.AGNES_IMAGE_MODEL || 'agnes-image-2.5-flash';
 const VISION_FALLBACK = process.env.AGNES_VISION_FALLBACK_MODEL || 'agnes-2.0-flash';
 const IMAGE_FALLBACK = process.env.AGNES_IMAGE_FALLBACK_MODEL || 'agnes-image-2.1-flash';
+const VISION_TIMEOUT_MS = Number(process.env.AGNES_VISION_TIMEOUT_MS || 180000);
+const IMAGE_TIMEOUT_MS = Number(process.env.AGNES_IMAGE_TIMEOUT_MS || 300000);
 
 function requireKey() {
   if (!API_KEY) throw new Error('AGNES_API_KEY is not configured.');
@@ -23,7 +25,7 @@ export async function fileToDataUri(file) {
   return `data:${mimeFor(file)};base64,${data.toString('base64')}`;
 }
 
-async function requestJson(endpoint, body, timeoutMs = 180000) {
+async function requestJson(endpoint, body, timeoutMs = VISION_TIMEOUT_MS) {
   requireKey();
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -85,19 +87,24 @@ export async function generateImage({ prompt, size = '2K', ratio = '9:16', image
   };
   if (images.length) body.extra_body.image = images;
   try {
-    return { model, response: await requestJson('/v1/images/generations', body, 300000) };
+    return { model, response: await requestJson('/v1/images/generations', body, IMAGE_TIMEOUT_MS) };
   } catch (err) {
     if ((err.status === 400 || err.status === 404 || err.status === 422) && model !== IMAGE_FALLBACK) {
       const fallbackBody = { ...body, model: IMAGE_FALLBACK };
       delete fallbackBody.ratio;
-      return { model: IMAGE_FALLBACK, response: await requestJson('/v1/images/generations', fallbackBody, 300000) };
+      return { model: IMAGE_FALLBACK, response: await requestJson('/v1/images/generations', fallbackBody, IMAGE_TIMEOUT_MS) };
     }
     throw err;
   }
 }
 
 export function extractText(response) {
-  return response?.choices?.[0]?.message?.content ?? '';
+  const text = response?.choices?.[0]?.message?.content ?? '';
+  if (!text) {
+    const shape = response && typeof response === 'object' ? Object.keys(response).join(', ') : 'none';
+    throw new Error(`Agnes Vision returned an empty response. Expected choices[0].message.content. Top-level keys: ${shape}`);
+  }
+  return text;
 }
 
 export function extractImages(response) {
@@ -111,6 +118,8 @@ export function configSummary() {
     visionModel: VISION_MODEL,
     visionFallback: VISION_FALLBACK,
     imageModel: IMAGE_MODEL,
-    imageFallback: IMAGE_FALLBACK
+    imageFallback: IMAGE_FALLBACK,
+    visionTimeoutMs: VISION_TIMEOUT_MS,
+    imageTimeoutMs: IMAGE_TIMEOUT_MS
   };
 }

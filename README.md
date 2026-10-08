@@ -72,9 +72,15 @@ MCP Server 註冊名稱為 **`agnes-image-mcp`**（在 `server.mjs` 中宣告）
 | --- | --- |
 | Vision 分析 | 180 秒 |
 | Image 生成／編輯 | 300 秒 |
-| OpenCode MCP `timeout`（建議值） | 120000 ms |
+| OpenCode MCP `timeout`（本專案設定值） | 620000 ms |
 
-> 每個 HTTP 請求都有獨立計時器；若觸發 fallback，會再發一次新請求，因此理論最壞時間約為 Vision 360 秒 / Image 600 秒。若工作流較長，建議調高 OpenCode 的 MCP `timeout`。
+> 每個 HTTP 請求都有獨立計時器；若觸發 fallback，會再發一次新請求，因此理論最壞時間約為 Vision 360 秒 / Image 600 秒。
+>
+> MCP `timeout` 是**整個 server 共用的單一上限**，不是 per-tool，因此要取所有工具最壞時間的最大值：**Image fallback 300 + 300 = 600 秒**，故設 `620000` 才能同時涵蓋 Vision 與 Image 的 fallback 路徑。
+>
+> 設定成較大的值**不會**讓真的 hang 住更久：因為 `AGNES_VISION_TIMEOUT_MS`（180 秒）與 `AGNES_IMAGE_TIMEOUT_MS`（300 秒）一定會先到期並回傳可讀的 `isError`，MCP 層的 `620000` 只是天花板，正常情況下不會被觸及。
+>
+> 反之，若 MCP `timeout` **小於** API 層逾時（例如舊設定 `120000` < Vision `180000`），MCP 層會先到期，導致「Tool Call 之後完全收不到 Tool Result、也沒有任何錯誤訊息」。這是最常見的無 Result 成因。
 
 ---
 
@@ -160,9 +166,11 @@ echo %AGNES_API_KEY%
         "AGNES_VISION_MODEL": "agnes-2.5-flash",
         "AGNES_VISION_FALLBACK_MODEL": "agnes-2.0-flash",
         "AGNES_IMAGE_MODEL": "agnes-image-2.5-flash",
-        "AGNES_IMAGE_FALLBACK_MODEL": "agnes-image-2.1-flash"
+        "AGNES_IMAGE_FALLBACK_MODEL": "agnes-image-2.1-flash",
+        "AGNES_VISION_TIMEOUT_MS": "180000",
+        "AGNES_IMAGE_TIMEOUT_MS": "300000"
       },
-      "timeout": 120000
+"timeout": 620000
     }
   }
 }
@@ -172,7 +180,7 @@ echo %AGNES_API_KEY%
 
 - `"{env:AGNES_API_KEY}"` 讓 OpenCode 從環境變數讀取金鑰，**金鑰不會寫進版控檔案**。
 - `"cwd": "."` 表示 MCP 由**專案根目錄**啟動，因此 `./reference/xxx.png` 這類相對路徑會從專案根目錄解析。
-- `"timeout": 120000` 為建議值；由於 Vision API 最長可能跑到 180 秒，若頻繁逾時可依需求調高。
+- `"timeout": 620000` 為本專案設定值。必須 **大於所有工具的理論最壞時間**（Image fallback = 300000 + 300000 = 600000），否則 MCP 層會先逾時，直接造成「Tool Call 之後收不到 Tool Result」，且看不到任何錯誤訊息。
 
 ---
 
@@ -380,7 +388,7 @@ Agent 對圖片的「理解」與設計師的「審美」之間存在落差；�
 
 目標 Vision 模型：agnes-2.5-flash
 Fallback：agnes-2.0-flash
-圖片：./reference/product.png
+圖片：./reference/dashboard.jpg
 
 不要使用其他模型比較。
 
@@ -397,7 +405,7 @@ Skill 依 **P0 → P5** 順序排查，重點是**先確認 Tool Result 有沒�
 | 優先級 | 檢查項目 |
 | --- | --- |
 | **P0** | Tool Result / 執行是否完成（9 步鏈路追蹤） |
-| **P1** | 逾時（對照 MCP `timeout: 120000`） |
+| **P1** | 逾時（對照 MCP `timeout: 620000` 與 API `AGNES_VISION_TIMEOUT_MS: 180000`） |
 | **P2** | Agnes Vision 模型（是否真的發生 fallback） |
 | **P3** | 圖片路徑解析（`cwd: "."` 從專案根目錄解析） |
 | **P4** | Result serialization / propagation |
@@ -417,7 +425,8 @@ OpenCode → agnes-image MCP → agnes-image_analyze_image
 | 找不到 Tool | `MCP_DISCOVERY` | MCP / Tool discovery |
 | Tool Call 根本沒發生 | `TOOL_EXECUTION` | 模型未成功執行工具 |
 | Tool Call 後長時間無 Result | `TIMEOUT` / `AGNES_API` / `TOOL_EXECUTION` | 需查看 MCP server log |
-| 約 120 秒後失敗 | `TIMEOUT` | 對應 MCP `timeout` 設定 |
+| 約 620 秒後無 Result | `TIMEOUT` | MCP `timeout` 到期，Result 未回傳 |
+| 約 180 秒後回傳錯誤 | `AGNES_API` | API 層逾時，已正常回傳 `isError` |
 | 圖片不存在 | `PATH_RESOLUTION` | 檢查 `cwd` 與路徑 |
 | Agnes HTTP 401 / 403 | `AGNES_AUTH` | API Key / 權限問題 |
 | Agnes HTTP 4xx / 5xx | `AGNES_API` | API request 或服務端問題 |

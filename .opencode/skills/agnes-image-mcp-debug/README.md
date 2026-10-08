@@ -14,7 +14,7 @@
         "./mcp/agnes-image-mcp/src/server.mjs"
       ],
       "cwd": ".",
-      "timeout": 120000,
+      "timeout": 620000,
       "environment": {
         "AGNES_VISION_MODEL": "agnes-2.5-flash",
         "AGNES_VISION_FALLBACK_MODEL": "agnes-2.0-flash"
@@ -33,7 +33,7 @@ MCP `cwd` 是 `.`，`./reference/...` 預期應由專案根目錄解析。
 1. Tool Result 是否真的回來
 2. MCP 是否執行完成
 3. Agnes API 是否返回
-4. 是否接近 120 秒 timeout
+4. 是否接近 620 秒 MCP timeout（或 180 秒 Vision API timeout）
 5. Result serialization
 6. Result propagation
 7. 最後才檢查 model post-processing
@@ -54,7 +54,7 @@ MCP `cwd` 是 `.`，`./reference/...` 預期應由專案根目錄解析。
 
 目標 Vision 模型：agnes-2.5-flash
 Fallback：agnes-2.0-flash
-圖片：D:\agnes-image-mcp-main\reference\dashboard.jpg
+圖片：./reference/dashboard.jpg
 
 不要使用其他模型比較。
 重點確認 agnes-image_analyze_image 的 Tool Call
