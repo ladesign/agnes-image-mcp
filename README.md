@@ -523,4 +523,4 @@ Model: agnes-2.5-flash
 
 ## License
 
-MIT。
+MIT
