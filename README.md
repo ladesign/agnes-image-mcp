@@ -380,7 +380,7 @@ Agent 對圖片的「理解」與設計師的「審美」之間存在落差；�
 
 目標 Vision 模型：agnes-2.5-flash
 Fallback：agnes-2.0-flash
-圖片：D:\your-project\reference\product.png
+圖片：./reference/product.png
 
 不要使用其他模型比較。
 
